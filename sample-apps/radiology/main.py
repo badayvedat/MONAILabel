@@ -19,6 +19,8 @@ from lib.activelearning import Last
 from lib.infers.deepgrow_pipeline import InferDeepgrowPipeline
 from lib.infers.vertebra_pipeline import InferVertebraPipeline
 
+from lib.dicomdatastore import DICOMLocalDataStore
+
 import monailabel
 from monailabel.interfaces.app import MONAILabelApp
 from monailabel.interfaces.config import TaskConfig
@@ -93,6 +95,7 @@ class MyApp(MONAILabelApp):
                     logger.info(f"+++ Adding Model: {k} => {v}")
                     self.models[k] = eval(f"{v}()")
                     self.models[k].init(k, self.model_dir, conf, self.planner)
+
         logger.info(f"+++ Using Models: {list(self.models.keys())}")
 
         # Load models from bundle config files, local or released in Model-Zoo, e.g., --conf bundles <spleen_ct_segmentation_v0.1.0>
@@ -102,13 +105,17 @@ class MyApp(MONAILabelApp):
             app_dir=app_dir,
             studies=studies,
             conf=conf,
-            name=f"MONAILabel - Radiology ({monailabel.__version__})",
-            description="DeepLearning models for radiology",
+            name=f"Hacettepe GradProject Demo ({monailabel.__version__})",
+            description="Demo for brain MRI",
             version=monailabel.__version__,
         )
 
     def init_datastore(self) -> Datastore:
-        datastore = super().init_datastore()
+        logger.info(f"Init Datastore for: {self.studies}, using custom class DICOMLocalDataStore")
+        datastore = DICOMLocalDataStore(
+            self.studies,
+            auto_reload=True
+        )
         if self.heuristic_planner:
             self.planner.run(datastore)
         return datastore
